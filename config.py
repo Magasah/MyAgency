@@ -11,11 +11,11 @@ def _require_env(name: str) -> str:
 
 
 def _read_int_env(name: str, default: str) -> int:
-	raw = (os.getenv(name) or default).strip()
+	raw = (os.getenv(name) or default).strip().strip('"').strip("'")
 	try:
 		return int(raw)
 	except ValueError as exc:
-		raise RuntimeError(f"Environment variable {name} must be integer") from exc
+		raise RuntimeError(f"Environment variable {name} must be integer, got: {raw!r}") from exc
 
 
 def _read_float_env(name: str, default: str) -> float:
@@ -29,9 +29,13 @@ def _read_float_env(name: str, default: str) -> float:
 BOT_TOKEN: str = _require_env("BOT_TOKEN")
 
 # ID администратора.
-ADMIN_ID: int = _read_int_env("ADMIN_ID", "0")
+_admin_id_raw = (os.getenv("ADMIN_ID") or "").strip().strip('"').strip("'")
+if not _admin_id_raw:
+	raise RuntimeError("Environment variable ADMIN_ID is required")
+
+ADMIN_ID: int = _read_int_env("ADMIN_ID", _admin_id_raw)
 if ADMIN_ID <= 0:
-	raise RuntimeError("Environment variable ADMIN_ID must be positive integer")
+	raise RuntimeError(f"Environment variable ADMIN_ID must be positive integer, got: {ADMIN_ID}")
 
 # Имя файла базы данных SQLite.
 DATABASE_PATH: str = os.getenv("DATABASE_PATH", "myagency.db")

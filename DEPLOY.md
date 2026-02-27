@@ -62,3 +62,16 @@ WantedBy=multi-user.target
 - Ограничить доступ к каталогу: `chmod 700 /opt/myagency-bot`.
 - Регулярно менять токен бота при утечках.
 - Делать бэкап файла БД по расписанию.
+
+## 7) Docker Compose (альтернатива)
+- Создать `.env` рядом с `docker-compose.yml` (по шаблону `.env.example`).
+- Убедиться, что задано:
+  - `BOT_TOKEN`
+  - `ADMIN_ID`
+  - `PAYMENT_CARD`
+- Запуск:
+  - `docker compose up -d --build`
+- Логи:
+  - `docker compose logs -f myagency-bot`
+- Остановка:
+  - `docker compose down`
