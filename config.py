@@ -1,4 +1,5 @@
 import os
+import warnings
 
 # Конфигурация бота только через переменные окружения.
 
@@ -31,11 +32,15 @@ BOT_TOKEN: str = _require_env("BOT_TOKEN")
 # ID администратора.
 _admin_id_raw = (os.getenv("ADMIN_ID") or "").strip().strip('"').strip("'")
 if not _admin_id_raw:
-	raise RuntimeError("Environment variable ADMIN_ID is required")
-
-ADMIN_ID: int = _read_int_env("ADMIN_ID", _admin_id_raw)
-if ADMIN_ID <= 0:
-	raise RuntimeError(f"Environment variable ADMIN_ID must be positive integer, got: {ADMIN_ID}")
+	warnings.warn(
+		"Environment variable ADMIN_ID is not set. Admin features are disabled until ADMIN_ID is configured.",
+		RuntimeWarning,
+	)
+	ADMIN_ID = 1
+else:
+	ADMIN_ID: int = _read_int_env("ADMIN_ID", _admin_id_raw)
+	if ADMIN_ID <= 0:
+		raise RuntimeError(f"Environment variable ADMIN_ID must be positive integer, got: {ADMIN_ID}")
 
 # Имя файла базы данных SQLite.
 DATABASE_PATH: str = os.getenv("DATABASE_PATH", "myagency.db")
