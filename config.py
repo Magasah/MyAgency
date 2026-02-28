@@ -11,6 +11,16 @@ def _require_env(name: str) -> str:
 	return value
 
 
+def _validate_bot_token(token: str) -> str:
+	token = token.strip()
+	if ":" not in token:
+		raise RuntimeError("BOT_TOKEN has invalid format")
+	bot_id, secret = token.split(":", maxsplit=1)
+	if not bot_id.isdigit() or len(secret) < 20:
+		raise RuntimeError("BOT_TOKEN has invalid format")
+	return token
+
+
 def _read_int_env(name: str, default: str) -> int:
 	raw = (os.getenv(name) or default).strip().strip('"').strip("'")
 	try:
@@ -27,7 +37,7 @@ def _read_float_env(name: str, default: str) -> float:
 		raise RuntimeError(f"Environment variable {name} must be float") from exc
 
 # Токен телеграм-бота.
-BOT_TOKEN: str = _require_env("BOT_TOKEN")
+BOT_TOKEN: str = _validate_bot_token(_require_env("BOT_TOKEN"))
 
 # ID администратора.
 _admin_id_raw = (os.getenv("ADMIN_ID") or "").strip().strip('"').strip("'")
@@ -52,4 +62,6 @@ if EXCHANGE_RATE_TJS_TO_RUB <= 0:
 
 # Карта для оплаты заказов.
 PAYMENT_CARD: str = _require_env("PAYMENT_CARD")
+if len(PAYMENT_CARD) < 8:
+	raise RuntimeError("PAYMENT_CARD is too short")
 
