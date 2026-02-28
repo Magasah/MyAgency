@@ -30,11 +30,15 @@ async def set_bot_commands(bot: Bot) -> None:
     admin_cmds = [BotCommand(command="admin", description="Админ-панель")]
 
     from aiogram.types import BotCommandScopeDefault, BotCommandScopeChat
+    from aiogram.exceptions import TelegramBadRequest
 
     # установить команды по умолчанию
     await bot.set_my_commands(default_cmds, scope=BotCommandScopeDefault())
-    # /admin только для администратора
-    await bot.set_my_commands(admin_cmds, scope=BotCommandScopeChat(chat_id=int(ADMIN_ID)))
+    # /admin только для администратора (если chat_id валиден)
+    try:
+        await bot.set_my_commands(admin_cmds, scope=BotCommandScopeChat(chat_id=int(ADMIN_ID)))
+    except TelegramBadRequest as exc:
+        print(f"Warning: admin command scope was not applied: {exc!r}")
 
 
 async def main() -> None:
@@ -44,33 +48,33 @@ async def main() -> None:
     await init_db()
 
     # Создаём бота с установкой parse_mode через DefaultBotProperties
-    bot = Bot(
+    async with Bot(
         token=BOT_TOKEN,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-    )
-    dp = Dispatcher(storage=MemoryStorage())
+    ) as bot:
+        dp = Dispatcher(storage=MemoryStorage())
 
-    # Подключаем все роутеры.
-    dp.include_router(user_router)
-    dp.include_router(portfolio_router)
-    dp.include_router(order_router)
-    dp.include_router(admin_router)
-    dp.include_router(profile_router)
+        # Подключаем все роутеры.
+        dp.include_router(user_router)
+        dp.include_router(portfolio_router)
+        dp.include_router(order_router)
+        dp.include_router(admin_router)
+        dp.include_router(profile_router)
 
-    # Удаляем возможный старый вебхук и сбрасываем апдейты.
-    try:
-        await bot.delete_webhook(drop_pending_updates=True)
-    except Exception as exc:  # network problems should not stop the bot startup
-        from aiogram.exceptions import TelegramNetworkError
+        # Удаляем возможный старый вебхук и сбрасываем апдейты.
+        try:
+            await bot.delete_webhook(drop_pending_updates=True)
+        except Exception as exc:  # network problems should not stop the bot startup
+            from aiogram.exceptions import TelegramNetworkError
 
-        if isinstance(exc, TelegramNetworkError):
-            print(f"Warning: webhook deletion failed: {exc!r}")
-        else:
-            raise
-    await set_bot_commands(bot)
+            if isinstance(exc, TelegramNetworkError):
+                print(f"Warning: webhook deletion failed: {exc!r}")
+            else:
+                raise
+        await set_bot_commands(bot)
 
-    # Запуск long polling.
-    await dp.start_polling(bot, dispatcher=dp)
+        # Запуск long polling.
+        await dp.start_polling(bot, dispatcher=dp)
 
 
 if __name__ == "__main__":
