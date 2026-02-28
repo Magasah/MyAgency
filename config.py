@@ -11,6 +11,14 @@ def _require_env(name: str) -> str:
 	return value
 
 
+def _read_env_first(names: tuple[str, ...], default: str = "") -> str:
+	for name in names:
+		value = (os.getenv(name) or "").strip().strip('"').strip("'")
+		if value:
+			return value
+	return default
+
+
 def _validate_bot_token(token: str) -> str:
 	token = token.strip()
 	if ":" not in token:
@@ -37,10 +45,13 @@ def _read_float_env(name: str, default: str) -> float:
 		raise RuntimeError(f"Environment variable {name} must be float") from exc
 
 # Токен телеграм-бота.
-BOT_TOKEN: str = _validate_bot_token(_require_env("BOT_TOKEN"))
+_bot_token_raw = _read_env_first(("BOT_TOKEN", "TELEGRAM_BOT_TOKEN"))
+if not _bot_token_raw:
+	raise RuntimeError("Environment variable BOT_TOKEN is required")
+BOT_TOKEN: str = _validate_bot_token(_bot_token_raw)
 
 # ID администратора.
-_admin_id_raw = (os.getenv("ADMIN_ID") or "").strip().strip('"').strip("'")
+_admin_id_raw = _read_env_first(("ADMIN_ID", "BOT_ADMIN_ID", "OWNER_ID"))
 if not _admin_id_raw:
 	warnings.warn(
 		"Environment variable ADMIN_ID is not set. Admin features are disabled until ADMIN_ID is configured.",
@@ -61,7 +72,13 @@ if EXCHANGE_RATE_TJS_TO_RUB <= 0:
 	raise RuntimeError("Environment variable EXCHANGE_RATE_TJS_TO_RUB must be > 0")
 
 # Карта для оплаты заказов.
-PAYMENT_CARD: str = _require_env("PAYMENT_CARD")
+PAYMENT_CARD: str = _read_env_first(("PAYMENT_CARD", "PAYMENT_CARD_INFO", "PAYMENT_REQUISITES"))
+if not PAYMENT_CARD:
+	warnings.warn(
+		"PAYMENT_CARD is not set. Payment request messages will contain placeholder text.",
+		RuntimeWarning,
+	)
+	PAYMENT_CARD = "Уточните реквизиты у менеджера"
 if len(PAYMENT_CARD) < 8:
-	raise RuntimeError("PAYMENT_CARD is too short")
+	warnings.warn("PAYMENT_CARD value looks too short", RuntimeWarning)
 
