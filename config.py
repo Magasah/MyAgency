@@ -54,10 +54,10 @@ BOT_TOKEN: str = _validate_bot_token(_bot_token_raw)
 _admin_id_raw = _read_env_first(("ADMIN_ID", "BOT_ADMIN_ID", "OWNER_ID"))
 if not _admin_id_raw:
 	warnings.warn(
-		"Environment variable ADMIN_ID is not set. Admin features are disabled until ADMIN_ID is configured.",
+		"Environment variable ADMIN_ID is not set. Using fallback admin id 7679557111.",
 		RuntimeWarning,
 	)
-	ADMIN_ID = 1
+	ADMIN_ID = 7679557111
 else:
 	ADMIN_ID: int = _read_int_env("ADMIN_ID", _admin_id_raw)
 	if ADMIN_ID <= 0:

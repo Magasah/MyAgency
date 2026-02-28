@@ -164,6 +164,7 @@ async def cmd_admin(message: Message) -> None:
     Доступна только администратору.
     """
     if message.from_user.id != ADMIN_ID:
+        await message.answer("⛔ У вас нет доступа к админ-панели.")
         return
 
     await message.answer(
