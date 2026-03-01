@@ -37,6 +37,7 @@ def _faq_kb(user_lang: str) -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text=get_text(user_lang, "faq_hosting_q"), callback_data="faq_hosting")],
             [InlineKeyboardButton(text=get_text(user_lang, "faq_payment_q"), callback_data="faq_payment")],
             [InlineKeyboardButton(text=get_text(user_lang, "faq_guarantee_q"), callback_data="faq_guarantee")],
+            [InlineKeyboardButton(text=get_text(user_lang, "faq_admin_btn"), url="https://t.me/vvewrix")],
             [InlineKeyboardButton(text=get_text(user_lang, "back_btn"), callback_data="back_to_main")],
         ]
     )

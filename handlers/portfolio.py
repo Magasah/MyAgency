@@ -2,6 +2,7 @@ import html
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery, InputMediaPhoto
 
 from config import EXCHANGE_RATE_TJS_TO_RUB
@@ -45,7 +46,7 @@ async def menu_portfolio(callback: CallbackQuery) -> None:
 
     if total == 0:
         await callback.message.edit_text(
-            get_text(user_lang, "portfolio_empty"),
+            get_text(user_lang, "portfolio_test_bots"),
             reply_markup=main_menu_kb(user_lang),
         )
         await callback.answer()
@@ -63,16 +64,22 @@ async def menu_portfolio(callback: CallbackQuery) -> None:
     _, title_ru, title_tj, desc_ru, desc_tj, photo_file_id, demo_link = item
     caption = _portfolio_caption(user_lang, title_ru, title_tj, desc_ru, desc_tj)
 
-    await callback.message.answer_photo(
-        photo=photo_file_id,
-        caption=caption,
-        reply_markup=portfolio_nav_kb(
-            user_lang=user_lang,
-            current_index=0,
-            total=total,
-            demo_link=demo_link,
-        ),
-    )
+    try:
+        await callback.message.answer_photo(
+            photo=photo_file_id,
+            caption=caption,
+            reply_markup=portfolio_nav_kb(
+                user_lang=user_lang,
+                current_index=0,
+                total=total,
+                demo_link=demo_link,
+            ),
+        )
+    except TelegramBadRequest:
+        await callback.message.edit_text(
+            get_text(user_lang, "portfolio_test_bots"),
+            reply_markup=main_menu_kb(user_lang),
+        )
     await callback.answer()
 
 
@@ -114,19 +121,25 @@ async def portfolio_paginate(callback: CallbackQuery) -> None:
     _, title_ru, title_tj, desc_ru, desc_tj, photo_file_id, demo_link = item
     caption = _portfolio_caption(user_lang, title_ru, title_tj, desc_ru, desc_tj)
 
-    await callback.message.edit_media(
-        media=InputMediaPhoto(
-            media=photo_file_id,
-            caption=caption,
-            parse_mode="HTML",
-        ),
-        reply_markup=portfolio_nav_kb(
-            user_lang=user_lang,
-            current_index=next_index,
-            total=total,
-            demo_link=demo_link,
-        ),
-    )
+    try:
+        await callback.message.edit_media(
+            media=InputMediaPhoto(
+                media=photo_file_id,
+                caption=caption,
+                parse_mode="HTML",
+            ),
+            reply_markup=portfolio_nav_kb(
+                user_lang=user_lang,
+                current_index=next_index,
+                total=total,
+                demo_link=demo_link,
+            ),
+        )
+    except TelegramBadRequest:
+        await callback.message.edit_text(
+            get_text(user_lang, "portfolio_test_bots"),
+            reply_markup=main_menu_kb(user_lang),
+        )
     await callback.answer()
 
 
